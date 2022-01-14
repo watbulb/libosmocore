@@ -29,7 +29,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#ifdef __APPLE__
+#include <netinet/tcp.h>
+#else
 #include <linux/tcp.h>
+#endif
 #include <errno.h>
 #include <pthread.h>
 
@@ -94,13 +98,15 @@ static struct osmo_stat_item_group_desc stats_tcp_desc = {
 	.item_desc = stats_tcp_item_desc,
 };
 
+/* Do not fill if TCP_INFO is not possible on platform */
+#if defined(TCP_INFO)
 static void fill_stats(struct stats_tcp_entry *stats_tcp_entry)
 {
 	int rc;
 	struct tcp_info tcp_info;
 	socklen_t tcp_info_len = sizeof(tcp_info);
 	char stat_name[256];
-
+    
 	/* Do not fill in anything before the socket is connected to a remote end */
 	if (osmo_sock_get_ip_and_port(stats_tcp_entry->fd->fd, NULL, 0, NULL, 0, false) != 0)
 		return;
@@ -163,13 +169,14 @@ static void fill_stats(struct stats_tcp_entry *stats_tcp_entry)
 #endif
 
 }
+#else
+static void fill_stats(struct stats_tcp_entry *stats_tcp_entry) { return; };
+#endif
 
 static bool is_tcp(const struct osmo_fd *fd)
 {
 	int rc;
 	struct stat fd_stat;
-	int so_protocol = 0;
-	socklen_t so_protocol_len = sizeof(so_protocol);
 
 	/* Is this a socket? */
 	rc = fstat(fd->fd, &fd_stat);
@@ -179,11 +186,23 @@ static bool is_tcp(const struct osmo_fd *fd)
 		return false;
 
 	/* Is it a TCP socket? */
+#ifdef __APPLE__
+    short so_type = 0;
+    socklen_t so_type_len = 2;
+    rc = getsockopt(fd->fd, SOL_SOCKET, SO_TYPE, &so_type, &so_type_len);
+    if (rc < 0)
+        return false;
+    if (so_type == SOCK_STREAM)
+        return true;
+#else
+	int so_protocol = 0;
+	socklen_t so_protocol_len = sizeof(so_protocol);
 	rc = getsockopt(fd->fd, SOL_SOCKET, SO_PROTOCOL, &so_protocol, &so_protocol_len);
 	if (rc < 0)
 		return false;
 	if (so_protocol == IPPROTO_TCP)
 		return true;
+#endif
 
 	return false;
 }

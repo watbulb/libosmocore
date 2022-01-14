@@ -1886,7 +1886,11 @@ int osmo_sock_set_dscp(int fd, uint8_t dscp)
 int osmo_sock_set_priority(int fd, int prio)
 {
 	/* and write it back to the kernel */
+#ifdef __APPLE__
+    return 0;
+#else
 	return setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &prio, sizeof(prio));
+#endif
 }
 
 #endif /* HAVE_SYS_SOCKET_H */

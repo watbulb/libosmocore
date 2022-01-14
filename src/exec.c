@@ -244,12 +244,20 @@ int osmo_system_nowait2(const char *command, const char **env_whitelist, char **
 
 		/* drop privileges */
 		if (pw) {
+#ifdef __APPLE__
+			if (setregid(pw->pw_gid, pw->pw_gid) < 0) {
+#else
 			if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) < 0) {
+#endif
 				perror("setresgid() during privilege drop");
 				exit(1);
 			}
 
+#ifdef __APPLE__
+			if (setreuid(pw->pw_uid, pw->pw_uid) < 0) {
+#else
 			if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) < 0) {
+#endif
 				perror("setresuid() during privilege drop");
 				exit(1);
 			}

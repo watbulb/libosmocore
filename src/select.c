@@ -555,7 +555,13 @@ int osmo_timerfd_setup(struct osmo_fd *ofd, int (*cb)(struct osmo_fd *, unsigned
 	return 0;
 }
 
-#endif /* HAVE_SYS_TIMERFD_H */
+#else /* HAVE_SYS_TIMERFD_H */
+
+int osmo_timerfd_disable(struct osmo_fd *ofd) { return -1; }
+int osmo_timerfd_schedule(struct osmo_fd *ofd, const struct timespec *first,
+			  const struct timespec *interval) { return -1; }
+int osmo_timerfd_setup(struct osmo_fd *ofd, int (*cb)(struct osmo_fd *, unsigned int), void *data) { return -1; }
+#endif
 
 #ifdef HAVE_SYS_SIGNALFD_H
 #include <sys/signalfd.h>

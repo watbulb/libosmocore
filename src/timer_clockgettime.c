@@ -71,16 +71,16 @@ static struct fakeclock* clkid_to_fakeclock(clockid_t clk_id)
 	switch(clk_id) {
 	case CLOCK_REALTIME:
 		return &realtime;
-	case CLOCK_REALTIME_COARSE:
-		return &realtime_coarse;
+	// case CLOCK_REALTIME_COARSE:
+	//	return &realtime_coarse;
 	case CLOCK_MONOTONIC:
 		return &mono;
-	case CLOCK_MONOTONIC_COARSE:
-		return &mono_coarse;
+	//case CLOCK_MONOTONIC_COARSE:
+	//	return &mono_coarse;
 	case CLOCK_MONOTONIC_RAW:
 		return &mono_raw;
-	case CLOCK_BOOTTIME:
-		return &boottime;
+	//case CLOCK_BOOTTIME:
+	//	return &boottime;
 	case CLOCK_PROCESS_CPUTIME_ID:
 		return &proc_cputime_id;
 	case CLOCK_THREAD_CPUTIME_ID:
